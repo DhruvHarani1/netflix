@@ -1,4 +1,4 @@
-import { registerView, registerActions, registerInputs, pageHead, panel, kpi, btn, badge, bar, table, tabs, curTab, empty, money, num, int, pct, esc, app, scoreColor, stars, tip } from '../kit';
+import { confetti, registerView, registerActions, registerInputs, pageHead, panel, kpi, btn, badge, bar, table, tabs, curTab, empty, money, num, int, pct, esc, app, scoreColor, stars, tip } from '../kit';
 import { chart } from '../charts';
 import { ui, S } from '../state';
 import { CATS, CAT, CAT_GROUPS, specValue, specQuality, type CatDef } from '../../data/categories';
@@ -192,7 +192,14 @@ registerActions({
   'p-topup': el => { const s = S(); const p = P.getProduct(s, +el.dataset.id!)!; const r = P.topUpBudget(s, p.id, p.budget * +el.dataset.mul!); app.toast(r.msg, r.ok ? 'good' : 'warn'); },
   'p-test': el => { const r = P.startTesting(S(), +el.dataset.id!); app.toast(r.msg, r.ok ? 'good' : 'warn'); }, 'p-skip': el => { app.confirm('Skip QA?', 'Untested products ship with their bugs. Reviews and reliability will suffer.', () => { P.skipTesting(S(), +el.dataset.id!); }, 'Skip testing'); },
   'p-rework': el => { const r = P.rework(S(), +el.dataset.id!); app.toast(r.msg, r.ok ? 'info' : 'warn'); },
-  'p-launch': el => { const r = P.launch(S(), +el.dataset.id!); if (!r.ok) { app.toast(r.msg, 'warn'); app.sfx('error'); } },
+  'p-launch': el => {
+    const s = S(); const pid = +el.dataset.id!; const r = P.launch(s, pid);
+    if (!r.ok) { app.toast(r.msg, 'warn'); app.sfx('error'); return; }
+    app.openModal('launch', () => {
+      const p = P.getProduct(s, pid)!; const c = CAT[p.cat]; const rv = p.reviews[0];
+      return '<div class="celebrate">' + confetti() + '<div class="big">' + c.icon + '</div><small class="dim">NEW PRODUCT LAUNCH</small><h2>' + esc(p.name) + '</h2><div class="stars">' + (rv ? stars(rv.stars) : '') + '</div><p class="dim">' + (rv ? '“' + esc(rv.text) + '” — launch press' : '') + '</p><div class="mstats"><div><span>Quality</span><b class="num">' + p.q.toFixed(0) + '</b></div><div><span>Price</span><b class="num">$' + p.price.toFixed(p.price < 10 ? 2 : 0) + '</b></div><div><span>Market avg</span><b class="num">' + s.market.cats[p.cat].avgQ.toFixed(0) + '</b></div></div></div><div class="mfoot">' + btn('View product', 'modal-close', {}, 'primary') + '</div>';
+    });
+  },
   'p-patch': el => { const r = P.patchBugs(S(), +el.dataset.id!); app.toast(r.msg, r.ok ? 'good' : 'warn'); },
   'p-outsource': el => { const s = S(); const p = P.getProduct(s, +el.dataset.id!)!; const r = P.setOutsource(s, p.id, !p.outsource); app.toast(r.msg, 'info'); },
   'p-retire': el => app.confirm('Retire product?', 'Sales stop immediately and subscribers are lost. This cannot be undone.', () => { P.retire(S(), +el.dataset.id!); st().sel = null; }, 'Retire'),

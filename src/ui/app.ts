@@ -1,6 +1,6 @@
 // UI shell: screens, nav, top bar, game loop, modals, toasts, input routing.
 import { ui, G, S } from './state';
-import { views, actions, inputs, app, esc, money, logo, fmtDay, badge, btn, num } from './kit';
+import { views, actions, inputs, app, esc, money, logo, fmtDay, badge, btn, num, confetti } from './kit';
 import { drawAllCharts } from './charts';
 import { playSfx } from './audio';
 import { tick, advance } from '../sim/engine';
@@ -16,7 +16,7 @@ import { renderMenu, renderCreate, mountMenu, menuActions } from './screens';
 import './views';
 
 export const DAY_MS = 700;
-let acc = 0, lastT = performance.now(), lastRender = 0, lastMonth = -1, dirty = true, pointerDown = false;
+let lastStage = 0, acc = 0, lastT = performance.now(), lastRender = 0, lastMonth = -1, dirty = true, pointerDown = false;
 const root = () => document.getElementById('app')!;
 const shownDecisions = new Set<number>();
 
@@ -70,7 +70,7 @@ export function applySettings() {
   saveSettings(ui.settings);
 }
 export function startGame(s: any, slot = 1) {
-  shownDecisions.clear();
+  shownDecisions.clear(); lastStage = s.derived.stage;
   G.s = s; ui.screen = 'game'; ui.view = 'dashboard'; ui.tab = {}; ui.sel = {}; ui.paused = true; ui.speed = 1; ui.modal = null; ui.slot = slot; lastMonth = monthIndex(s.day); acc = 0; ui.notes = [];
   renderNow();
 }
@@ -98,6 +98,12 @@ function loop() {
     const pend = s.events.pending.find(e => !e.resolved && e.choices.length > 0 && !shownDecisions.has(e.uid));
     if (pend && !ui.modal) { shownDecisions.add(pend.uid); if (ui.settings.autoPause) ui.paused = true; openDecision(pend.uid); }
     if (s.gameOver && !ui.modal) openGameOver();
+    if (lastStage && s.derived.stage > lastStage && !ui.modal) {
+      const st = STAGES[s.derived.stage - 1]; ui.paused = true;
+      app.openModal('stage', () => '<div class="celebrate">' + confetti(60) + '<div class="big">🏆</div><small class="dim">STAGE ' + st.n + ' REACHED</small><h2>' + esc(st.name) + '</h2><p class="dim">' + esc(st.blurb) + '</p><p>' + esc(s.co.name) + ' is now worth <b>' + money(s.derived.valuation) + '</b>.</p></div><div class="mfoot">' + btn('Continue', 'modal-close', {}, 'primary') + '</div>');
+      playSfx('achievement');
+    }
+    lastStage = s.derived.stage;
   }
   if (dirty && now - lastRender > (ui.paused ? 120 : 380)) renderNow();
 }

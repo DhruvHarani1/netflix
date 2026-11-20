@@ -21,10 +21,10 @@ and you can export/import a save as a `.json` file from the save/load dialog.
 
 ### Other scripts
 ```bash
-npm test             # 38 vitest tests: ledger invariants, every module, a 12-year autoplay bot
+npm test             # 50 vitest tests: ledger invariants, every module, fuzzed random play over 12 seeds, a 12-year autoplay bot
 npm run typecheck
 ```
-`scripts/smoke.cjs` and `scripts/e2e.cjs` are Playwright drivers that click through the real UI
+`scripts/smoke.cjs`, `scripts/e2e.cjs` and `scripts/playthrough.cjs` are Playwright drivers that click through the real UI (the playthrough plays a full product lifecycle: wizard → develop → test → launch → marketing → research → revenue)
 (`NODE_PATH=$(npm root -g) node scripts/e2e.cjs http://localhost:4173 /tmp/out`).
 
 ## Controls

@@ -57,6 +57,12 @@ export function logo(idx: number, color: string, size = 32): string {
   const stroke = sh.includes('fill="none"') && !sh.includes('stroke="#0c0f14"') ? `stroke="${color}"` : '';
   return `<svg class="logo" width="${size}" height="${size}" viewBox="0 0 32 32" fill="${color}" ${stroke}>${sh}</svg>`;
 }
+export function confetti(n = 46): string {
+  const cols = ['#4cc9f0', '#7c5cff', '#2ee6a6', '#ffb703', '#ff4d6d', '#c77dff'];
+  let h = '<div class="confetti">';
+  for (let i = 0; i < n; i++) h += '<i style="left:' + ((i * 37 + (i % 7) * 11) % 100) + '%;background:' + cols[i % cols.length] + ';animation-delay:' + (((i * 13) % 20) / 10) + 's;animation-duration:' + (2.2 + (i % 5) * 0.35) + 's;transform:rotate(' + (i * 25) + 'deg)"></i>';
+  return h + '</div>';
+}
 export const tip = (text: string) => `<span class="tip" data-tip="${esc(text)}">ⓘ</span>`;
 export function scoreColor(v: number): string { return v >= 70 ? 'var(--good)' : v >= 45 ? 'var(--warn)' : 'var(--bad)'; }
 export function companyName() { return esc(S().co.name); }
