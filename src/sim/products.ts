@@ -151,7 +151,7 @@ export function daily(s: GameState): void {
     const cat = CAT[p.cat];
     if (p.status === 'dev' || p.updating) {
       const tm = teamOutput(s, p); let pts = tm.out;
-      if (pts <= 0) { if (!p.stalled && s.day % 30 === 0) toast(`${p.name} has no team assigned`, 'warn'); continue; }
+      if (pts <= 0) { if (!p.stalled && s.day % 120 === 0) toast(`${p.name} has no team assigned`, 'warn'); continue; }
       const remaining = p.need - p.progress; pts = Math.min(pts, remaining);
       const cost = (p.budget * pts) / p.need;
       if (p.spent + cost > p.budget + 1) { if (!p.stalled) { p.stalled = true; toast(`${p.name} ran out of budget — top it up`, 'warn', 'warn'); } continue; }

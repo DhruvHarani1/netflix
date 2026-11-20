@@ -59,7 +59,7 @@ Everything else is mouse-driven. Time pauses automatically when a decision event
 | **Dashboard** | KPIs, 8 live charts (revenue, expenses, P&L, valuation, stock, share, cash-flow, headcount), objectives, decisions, news, rival activity, opportunities |
 | **Products** | 22 categories, 6–8 specs each, workflow: design → develop → prototype review → QA testing → price → launch → reviews → updates/patches/retire; budgets, team assignment, bugs, outsourcing vs. own plants |
 | **Market** | 7 customer segments × 7 regions, softmax choice model over price/performance/brand/innovation/reliability/service/ecosystem, awareness gating, word-of-mouth ramp, seasonality, economic cycle, factory/data-centre capacity, churn, reviews & satisfaction |
-| **Research** | 66-node tree in 5 branches, prerequisites, costs, duration, failures, breakthroughs, patents + licensing income, lab slots, budget boost |
+| **Research** | 69-node tree in 5 branches, prerequisites, costs, duration, failures, breakthroughs, patents + licensing income, lab slots, budget boost |
 | **People** | 12 departments, individuals and teams, interviews, negotiation, promotion, raises, training, performance, resignations, poaching & counter-offers, conflicts, layoffs, leadership vs. skill, pay & perks policy |
 | **Facilities** | Offices, HQ, labs, data centres, factories, fabs, warehouses, test facilities, campuses; rent vs. buy vs. outsource, build time, 7 upgrade tracks, depreciation |
 | **Finance** | Income statement, balance sheet, cash-flow statement, ratios, loans/bonds, VC rounds with dilution, equity sales, dividends, buybacks, tax with loss carry-forward, credit score, insolvency & bankruptcy |

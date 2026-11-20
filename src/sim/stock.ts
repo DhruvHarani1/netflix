@@ -22,6 +22,26 @@ export function stakePrice(r: Rival): number {
 }
 export function stakeShares(r: Rival) { return r.shares > 0 ? r.shares : 1_000_000; }
 
+/** Stock splits keep share prices in a human range (companies split when the price runs away). */
+function splitRatio(px: number): number { return px > 6000 ? 50 : px > 2500 ? 20 : px > 1200 ? 10 : px > 600 ? 5 : 0; }
+function splits(s: GameState): void {
+  const st = s.stock; const prev: Record<string, number> = s.flags.idxPrev || {};
+  for (const r of s.rivals) {
+    if (r.status !== 'active' || !r.publicCo) continue;
+    const k = splitRatio(r.px); if (!k) continue;
+    r.shares *= k; r.px /= k; r.pxHist = r.pxHist.map(v => v / k); if (prev[r.id]) prev[r.id] /= k;
+    const pf = st.portfolio[r.id]; if (pf) pf.shares *= k;
+    addNews(s, r.name + ' announces ' + k + '-for-1 stock split', 'Shares will trade at a lower price after the split; holders receive additional shares.', 'finance', 'neutral', r.id);
+  }
+  if (st.public) {
+    const k = splitRatio(st.px); if (!k) return;
+    s.fin.shares *= k; s.fin.founderShares *= k; s.fin.treasury *= k; s.fin.dividendPerShare /= k;
+    st.px /= k; st.pxHist = st.pxHist.map(v => v / k); st.hi52 /= k; st.lo52 /= k; st.ipoPx /= k; st.fair /= k; st.analysts.target /= k; st.lastEPS /= k; st.expectedEPS /= k;
+    if (prev.player) prev.player /= k;
+    addNews(s, s.co.name + ' announces ' + k + '-for-1 stock split', 'The board approved a split to make shares more accessible to retail investors.', 'company', 'good');
+    toast(k + '-for-1 stock split: price now $' + st.px.toFixed(2), 'good', 'success');
+  }
+}
 export function daily(s: GameState): void {
   const st = s.stock; const econ = s.market.econ;
   // ---- market sentiment
@@ -57,6 +77,7 @@ export function daily(s: GameState): void {
     if (s.day >= st.nextEarnings) earnings(s);
     if (s.day % 7 === 0) analysts(s);
   }
+  splits(s);
   // ---- TECH index (weekly, chain-linked cap-weighted)
   if (s.day % 7 === 0) {
     const prev: Record<string, number> = s.flags.idxPrev || (s.flags.idxPrev = {}); let w = 0, ret = 0; const cur: Record<string, number> = {};

@@ -29,7 +29,7 @@ function draw(cv: HTMLCanvasElement) {
   render(ctx, cfg, w, h, hover.get(cv.dataset.chart || '') ?? -1);
   if (!(cv as any)._hooked) {
     (cv as any)._hooked = true;
-    cv.addEventListener('mousemove', e => { const r = cv.getBoundingClientRect(); const n = count(f()); const padL = 52; const x = e.clientX - r.left; const frac = (x - padL) / Math.max(1, r.width - padL - 10); const i = Math.max(0, Math.min(n - 1, Math.round(frac * (n - 1)))); hover.set(cv.dataset.chart || '', i); draw(cv); });
+    cv.addEventListener('mousemove', e => { const r = cv.getBoundingClientRect(); const n = count(f()); const padL = (cv as any)._padL || 52; const x = e.clientX - r.left; const frac = (x - padL) / Math.max(1, r.width - padL - 10); const i = Math.max(0, Math.min(n - 1, Math.round(frac * (n - 1)))); hover.set(cv.dataset.chart || '', i); draw(cv); });
     cv.addEventListener('mouseleave', () => { hover.delete(cv.dataset.chart || ''); draw(cv); });
   }
 }
@@ -37,7 +37,7 @@ const count = (c: ChartCfg) => (c.candles ? c.candles.length : Math.max(0, ...(c
 function nice(v: number, up: boolean) { if (v === 0) return 0; const e = Math.pow(10, Math.floor(Math.log10(Math.abs(v)))); const m = v / e; const n = up ? (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) : (m >= -1 ? -1 : m >= -2 ? -2 : m >= -5 ? -5 : -10); return v > 0 === up ? n * e : (v < 0 ? -Math.ceil(Math.abs(m)) * e : Math.floor(m) * e); }
 
 function render(ctx: CanvasRenderingContext2D, cfg: ChartCfg, W: number, H: number, hi: number) {
-  const padL = 52, padR = 10, padT = cfg.legend === false ? 8 : 22, padB = cfg.labels ? 20 : 8;
+  let padL = 52; const padR = 10, padT = cfg.legend === false ? 8 : 22, padB = cfg.labels ? 20 : 8;
   if (!cfg.candles && cfg.series) for (const sr of cfg.series) if (sr.data.length === 1) sr.data = [sr.data[0], sr.data[0]];
   if (cfg.labels && cfg.labels.length === 1) cfg.labels = [cfg.labels[0], cfg.labels[0]];
   const n = count(cfg); const fmt = cfg.fmt || ((v: number) => v.toFixed(0));
@@ -53,6 +53,7 @@ function render(ctx: CanvasRenderingContext2D, cfg: ChartCfg, W: number, H: numb
   if (cfg.min !== undefined) lo = cfg.min; if (cfg.max !== undefined) hiV = cfg.max;
   if (!isFinite(lo) || !isFinite(hiV)) return; if (hiV === lo) { hiV = lo + 1; lo = lo - (lo === 0 ? 0 : 1); }
   const span = hiV - lo; if (cfg.min === undefined && !cfg.zero && cfg.type !== 'bar') lo -= span * .06; if (cfg.max === undefined) hiV += span * .06;
+  padL = Math.max(44, Math.ceil(Math.max(ctx.measureText(fmt(lo)).width, ctx.measureText(fmt(hiV)).width) + 14)); (ctx.canvas as any)._padL = padL;
   const cw = W - padL - padR, ch = H - padT - padB;
   const X = (i: number) => padL + (cfg.type === 'bar' ? (i + .5) / n : i / (n - 1)) * cw; const Y = (v: number) => padT + (1 - (v - lo) / (hiV - lo)) * ch;
   // grid + y labels

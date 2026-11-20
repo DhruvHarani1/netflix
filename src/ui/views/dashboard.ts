@@ -37,13 +37,39 @@ function opportunities(s: GameState): string {
   return ops.length ? ops.map(o => `<div class="opp"><span class="pc-ic">${o.icon}</span><div style="flex:1"><b>${esc(o.t)}</b><small>${esc(o.sub)}</small></div>${o.act ? btn('→', o.act, { v: o.id! }, 'ghost sm') : ''}</div>`).join('') : '<p class="dim">No clear gaps — you are competing everywhere you can.</p>';
 }
 
+
+interface Tip { sev: 'bad' | 'warn' | 'info'; text: string; view: string; label: string }
+function advisor(s: GameState): string {
+  const tips: Tip[] = []; const burn = monthlyBurn(s); const runway = burn > 0 ? s.fin.cash / burn : Infinity;
+  if (runway < 3) tips.push({ sev: 'bad', text: `Cash runway is only ${runway.toFixed(1)} months. Raise money, cut costs or launch something that sells.`, view: 'finance', label: 'Finance' });
+  else if (runway < 6) tips.push({ sev: 'warn', text: `Runway is ${runway.toFixed(1)} months — consider a loan or funding round before it gets tight.`, view: 'finance', label: 'Finance' });
+  for (const p of s.products) {
+    if (p.status === 'dev' && !s.people.emps.some(e => e.project === p.id)) tips.push({ sev: 'warn', text: `${p.name} has no team — development is paused.`, view: 'products', label: 'Assign team' });
+    else if (p.stalled) tips.push({ sev: 'warn', text: `${p.name} ran out of budget and is stalled.`, view: 'products', label: 'Top up' });
+    else if (p.status === 'prototype') tips.push({ sev: 'info', text: `${p.name} has a prototype ready for your review.`, view: 'products', label: 'Review' });
+    else if (p.status === 'ready') tips.push({ sev: 'info', text: `${p.name} is ready — set the price and launch it.`, view: 'products', label: 'Launch' });
+    else if (p.status === 'live' && p.satisf < 40 && p.base + p.unitsEma * 30 > 500) tips.push({ sev: 'warn', text: `${p.name} customers are unhappy (${p.rating.toFixed(1)}★). Patch bugs or release an update.`, view: 'products', label: 'Fix' });
+    else if (p.status === 'live' && p.lost30 > p.sold30 * 0.2 && p.lost30 > 0) tips.push({ sev: 'info', text: `${p.name} is capacity-constrained — build factories / data centres or outsource.`, view: 'facilities', label: 'Facilities' });
+  }
+  if (!s.products.some(p => ['dev', 'prototype', 'testing', 'ready'].includes(p.status)) && s.fin.cash > 150000) tips.push({ sev: 'info', text: s.products.length ? 'Nothing is in development. New launches and updates keep you ahead of the market.' : 'You have not started a product yet — that is where revenue comes from.', view: 'products', label: 'New product' });
+  if (s.research.active.length < s.research.slots && s.fin.cash > 200000) tips.push({ sev: 'info', text: 'A research lab slot is idle. Queue a technology to raise your spec ceilings.', view: 'research', label: 'Research' });
+  if (s.derived.officeCap > 0 && s.derived.headcount > s.derived.officeCap) tips.push({ sev: 'warn', text: `Over office capacity (${s.derived.headcount}/${s.derived.officeCap}) — morale and productivity suffer.`, view: 'facilities', label: 'Expand' });
+  if (s.products.some(p => p.status === 'live') && Object.values(s.marketing.awareness).reduce((a, b) => a + b, 0) / 7 < 12 && !s.marketing.campaigns.length && s.fin.cash > 100000) tips.push({ sev: 'info', text: 'Awareness is very low — people cannot buy what they have not heard of. Run a campaign.', view: 'marketing', label: 'Marketing' });
+  const risk = s.people.emps.filter(e => e.heads === 1 && e.happy < 35).length; if (risk) tips.push({ sev: 'warn', text: `${risk} employee${risk > 1 ? 's are' : ' is'} unhappy and may quit.`, view: 'people', label: 'People' });
+  if (s.meta.missions.some(m => m.done && !m.claimed)) tips.push({ sev: 'info', text: 'You have mission rewards to claim.', view: 'achievements', label: 'Claim' });
+  if (s.co.ceo.perkPoints > 0) tips.push({ sev: 'info', text: `You have ${s.co.ceo.perkPoints} unspent CEO perk point${s.co.ceo.perkPoints > 1 ? 's' : ''}.`, view: 'achievements', label: 'Perks' });
+  if (!tips.length) return '';
+  const order = { bad: 0, warn: 1, info: 2 } as const; tips.sort((a, b) => order[a.sev] - order[b.sev]);
+  return panel('Advisor', tips.slice(0, 5).map(t => `<div class="tip-row ${t.sev}"><span>${t.sev === 'bad' ? '🚨' : t.sev === 'warn' ? '⚠️' : '💡'}</span><p>${esc(t.text)}</p>${btn(t.label, 'go', { v: t.view }, 'ghost sm')}</div>`).join(''));
+}
+
 registerView({
   id: 'dashboard', title: 'CEO Dashboard', icon: '📊', group: 'command', order: -1,
   render: () => {
     const s = S(); const d = s.derived; const L = s.fin.ledger.last; const M = s.fin.ledger.m;
     const rev = L.rev || M.rev; const exp = L.cogs + opexTotal(L); const ni = L.ni;
     const live = s.products.filter(p => p.status === 'live');
-    const rp = s.research.active[0]; const rt = rp ? (() => { const t = TECH_BY_ID[rp.id]; return `${t.name} ${(rp.progress / t.rp * 100).toFixed(0)}%`; })() : 'Idle';
+    const rp = s.research.active[0]; const rtName = rp ? TECH_BY_ID[rp.id].name : ''; const rt = rp ? `${(rp.progress / TECH_BY_ID[rp.id].rp * 100).toFixed(0)}%` : 'Idle';
     const stage = STAGES[d.stage - 1];
     const hero = `<div class="hero" style="--c:${s.co.color}">${logo(s.co.logo, s.co.color, 56)}<div><h1>${esc(s.co.name)}</h1><small>${esc(s.co.slogan)} · CEO ${esc(s.co.founder)} · ${esc(s.co.city)}</small><div class="stagebar">${STAGES.map(x => `<i class="${x.n < d.stage ? 'on' : x.n === d.stage ? 'cur' : ''}" title="${x.name}"></i>`).join('')}</div><small>Stage ${d.stage}: <b style="color:var(--text)">${stage.name}</b> — ${stage.blurb}</small></div>
       <div class="hm"><div><span>Date</span><b class="num">${fmtDate(s.day)}</b></div><div><span>Live products</span><b class="num">${live.length}</b></div><div><span>Regions</span><b class="num">${Object.values(s.regions).filter(r => r.presence > 5).length}</b></div><div><span>Reputation</span><b class="num">${s.marketing.reputation.toFixed(0)}</b></div></div></div>`;
@@ -56,7 +82,7 @@ registerView({
       ${kpi('Employees', num(d.headcount, 0), `capacity ${num(d.officeCap, 0)}`)}
       ${kpi('Market share', pct(d.marketShare, 1), `${live.length} live product${live.length === 1 ? '' : 's'}`)}
       ${kpi('Stock price', s.stock.public ? `$${s.stock.px.toFixed(2)}` : '—', s.stock.public ? `sentiment ${s.stock.sentiment.toFixed(0)}` : 'Not public')}
-      ${kpi('Research', rt, `${Object.keys(s.research.done).length} techs · ${s.research.patents.length} patents`)}
+      ${kpi('Research', rt, rp ? `${esc(rtName)}${s.research.active.length > 1 ? ` +${s.research.active.length - 1}` : ''}` : `${Object.keys(s.research.done).length} techs · ${s.research.patents.length} patents`)}
     </div>`;
     const cp = (id: string, title: string, cfg: () => any, val: string) => `<div class="panel cpanel"><header><h3>${title}</h3><span class="cval">${val}</span></header><div class="pb">${chart('d-' + id, cfg, 150)}</div></div>`;
     const lbl = s.hist.slice(-48).map(h => lab(s, h.day));
@@ -77,7 +103,7 @@ registerView({
     const pendHtml = pend.length ? pend.map(e => `<div class="opp"><span class="pc-ic">${e.icon}</span><div style="flex:1"><b>${esc(e.title)}</b><small>${e.deadline > s.day ? `${e.deadline - s.day} days left` : 'Awaiting decision'}</small></div>${btn('Decide', 'decide', {}, 'warn sm')}</div>`).join('') : '<p class="dim">No pending decisions.</p>';
     const news = s.events.news.slice(-6).reverse().map(n => `<div class="fi ${n.tone}"><small>${fmtDay(n.day)} · ${n.kind}</small><b>${esc(n.headline)}</b></div>`).join('') || '<p class="dim">Quiet on the wires…</p>';
     const rlog = s.rivals.flatMap(r => r.log.slice(-3).map(l => ({ ...l, r }))).sort((a, b) => b.day - a.day).slice(0, 6).map(l => `<div class="fi"><small>${fmtDay(l.day)}</small><b style="color:${l.r.color}">${esc(l.r.short || l.r.name)}</b> <span class="dim">${esc(l.text)}</span></div>`).join('') || '<p class="dim">Rivals are quiet for now.</p>';
-    const right = `<div class="col">${checklist(s)}${panel('Objectives', objHtml, btn('All', 'go', { v: 'achievements' }, 'ghost sm'))}${panel('Pending decisions', pendHtml)}${panel('Market opportunities', opportunities(s))}${panel('Breaking news', news, btn('News', 'go', { v: 'news' }, 'ghost sm'))}${panel('Competitor activity', rlog, btn('Intel', 'go', { v: 'competitors' }, 'ghost sm'))}</div>`;
+    const right = `<div class="col">${advisor(s)}${checklist(s)}${panel('Objectives', objHtml, btn('All', 'go', { v: 'achievements' }, 'ghost sm'))}${panel('Pending decisions', pendHtml)}${panel('Market opportunities', opportunities(s))}${panel('Breaking news', news, btn('News', 'go', { v: 'news' }, 'ghost sm'))}${panel('Competitor activity', rlog, btn('Intel', 'go', { v: 'competitors' }, 'ghost sm'))}</div>`;
     return hero + kp + `<div class="dgrid"><div>${charts}</div>${right}</div>`;
   },
 });

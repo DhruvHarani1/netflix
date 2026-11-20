@@ -5,6 +5,7 @@ import { drawAllCharts } from './charts';
 import { playSfx } from './audio';
 import { tick, advance } from '../sim/engine';
 import { newGame } from '../sim/state';
+import { botMonth } from '../sim/autopilot';
 import { drainSignals, monthIndex } from '../sim/util';
 import { saveGame, loadGame, saveSettings, loadSettings } from '../sim/save';
 import { resolveEvent } from '../sim/events';
@@ -56,7 +57,7 @@ export function boot() {
   window.addEventListener('resize', () => drawAllCharts());
   document.addEventListener('visibilitychange', () => { if (document.hidden && G.s && ui.screen === 'game' && ui.settings.autosave) saveGame(G.s, 'auto'); });
   window.addEventListener('beforeunload', () => { if (G.s && ui.screen === 'game' && ui.settings.autosave && !G.s.gameOver) saveGame(G.s, 'auto'); });
-  (window as any).__tt = { G, ui, tick, S, newGame, startGame, app, advance };
+  (window as any).__tt = { G, ui, tick, S, newGame, startGame, app, advance, bot: botMonth };
   renderNow();
   setInterval(loop, 40);
 }
