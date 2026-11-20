@@ -119,7 +119,7 @@ const fmt = (n: number) => (Math.abs(n) >= 1e9 ? `$${(n / 1e9).toFixed(2)}B` : M
 
 // ------------------------------------------------------------------- ratios
 export function monthlyBurn(s: GameState): number {
-  const p = s.fin.ledger.last; const op = p.cfo + 0; const free = op - p.capex; return free < 0 ? -free : 0;
+  const p = s.fin.ledger.last; if (s.day < 35 && p.rev === 0 && p.cogs === 0) return s.derived.payroll * 1.15; const op = p.cfo + 0; const free = op - p.capex; return free < 0 ? -free : 0;
 }
 export function runwayMonths(s: GameState): number { const b = monthlyBurn(s); return b > 0 ? Math.max(0, s.fin.cash) / b : Infinity; }
 export function ratios(s: GameState) {

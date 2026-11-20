@@ -14,7 +14,14 @@ export interface EvTpl { id: string; weight: number; cooldown: number; sev: 'goo
 
 // ------------------------------------------------------------- helpers ----
 export const bizScale = (s: GameState) => Math.max(30000, s.derived.payroll * 1.0, s.derived.revYr / 12 * 0.5);
-const $ = (n: number) => '$' + Math.round(n).toLocaleString('en-US');
+const $ = (n: number) => {
+  const a = Math.abs(n), sg = n < 0 ? '-' : '';
+  if (a >= 1e12) return sg + '$' + (a / 1e12).toFixed(2) + 'T';
+  if (a >= 1e9) return sg + '$' + (a / 1e9).toFixed(2) + 'B';
+  if (a >= 1e6) return sg + '$' + (a / 1e6).toFixed(1) + 'M';
+  if (a >= 1e4) return sg + '$' + Math.round(a / 1e3) + 'K';
+  return sg + '$' + Math.round(a).toLocaleString('en-US');
+};
 const rep = (s: GameState, d: number) => { s.marketing.reputation = clamp(s.marketing.reputation + d * (d < 0 ? perkMult(s, 'events') : 1)); };
 const live = (s: GameState) => s.products.filter(p => p.status === 'live');
 const prodById = (s: GameState, id: number): Product | undefined => s.products.find(p => p.id === id);

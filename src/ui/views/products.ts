@@ -126,7 +126,7 @@ function detail(s: GameState, p: Product): string {
     const rev30 = p.revEma * 30; const margin = rev30 > 0 ? 1 - (p.ucost * (p.outsource ? 1.18 : 1) * (c.sub ? p.base : p.unitsEma * 30)) / rev30 : 0;
     const bench = priceBenchmarks(s, p.cat); const lo = Math.max(c.ref * .25, p.ucost), hi = c.ref * 4; const step = Math.max(0.01, +(c.ref / 200).toFixed(2));
     const u = st().upd;
-    body = `<div class="kpis mb">${kpi('Revenue / month', money(rev30), `lifetime ${money(p.lifeRev)}`)}${kpi(c.sub ? 'Subscribers' : 'Units / month', num(c.sub ? p.base : p.unitsEma * 30), c.sub ? `+${num(p.unitsEma * 30)} / mo` : `lifetime ${num(p.lifeUnits)}`)}${kpi('Rating', stars(p.rating), `${p.rating.toFixed(1)} · satisfaction ${p.satisf.toFixed(0)}`)}${kpi('Gross margin', pct(margin, 0), `$${p.price.toFixed(p.price < 10 ? 2 : 0)} price`)}${kpi('Category share', pct(cm.shares[ 'player'] ? (p.revEma * 30) / Math.max(1, cm.rev30 * 30) : 0, 1), `${c.name} market`)}</div>
+    body = `<div class="kpis mb">${kpi('Revenue / month', money(rev30), `lifetime ${money(p.lifeRev)}`)}${kpi(c.sub ? 'Subscribers' : 'Units / month', num(c.sub ? p.base : p.unitsEma * 30), c.sub ? `+${num(p.unitsEma * 30)} / mo` : `lifetime ${num(p.lifeUnits)}`)}${kpi('Rating', stars(p.rating), `${p.rating.toFixed(1)} · satisfaction ${p.satisf.toFixed(0)}`)}${kpi('Gross margin', pct(margin, 0), `$${p.price.toFixed(p.price < 10 ? 2 : 0)} price`)}${kpi('Category share', pct(cm.shares[ 'player'] ? (p.revEma * 30) / Math.max(1, cm.rev30) : 0, 1), `${c.name} market`)}</div>
     ${p.rampLimited ? `<div class="infobox">📈 <b>Sales are ramp-limited</b> (cap ${num(p.rampCap || 0)}/day). Awareness and word-of-mouth cap how fast a new product spreads — marketing, regional presence and satisfaction raise the ceiling.</div>` : ''}
     ${p.lost30 > p.sold30 * .15 && p.lost30 > 0 ? `<div class="warnbox">⚠ Capacity shortfall — losing sales you could make. ${p.outsource ? 'Contract capacity is ramping slowly; consider your own factories.' : 'Expand your factories or data centres in Facilities.'}</div>` : ''}
     <div class="grid g21"><div class="col">${panel('Sales history', chart(`p-hist-${p.id}`, () => ({ type: 'line', series: [{ name: 'Revenue / mo', color: 'var(--accent)', data: p.hist.map(h => h.rev), fill: true }], labels: p.hist.map(h => fmtDate(h.day).slice(0, 6)), fmt: money, zero: true }), 190), `${p.hist.length} months`)}
@@ -177,15 +177,16 @@ registerInputs({
   'u-budget': el => { st().upd!.budgetMul = +el.value; },
 });
 const commit = (el: HTMLElement) => { (el as HTMLElement).blur(); };
+const top = () => { const v = document.getElementById('view'); if (v) v.scrollTop = 0; };
 registerActions({
   'w-commit': commit, 'p-price-commit': commit, 'u-commit': el => { commit(el); app.openModal('upd', updateModal); },
   'w-outsource': el => { ws().outsource = (el as HTMLInputElement).checked; },
-  'p-new': () => { const s = S(); st().wiz = { cat: null, target: 'mainstream', specs: {}, budget: 0, budgetMul: 1, name: '', outsource: true, step: 0 }; st().sel = null; },
-  'w-cancel': () => { st().wiz = null; }, 'w-back': () => { ws().cat = null; },
-  'w-cat': el => { const s = S(); const w = ws(); const cat = CAT[el.dataset.id as CatId]; w.cat = cat.id; w.specs = P.defaultSpecs(s, cat); w.target = (SEGS.filter(g => cat.seg[g] > 0.03).sort((a, b) => cat.seg[b] - cat.seg[a])[0]) as Seg; w.budgetMul = 1; w.outsource = cat.cls !== 'sw' ? true : false; w.name = `${pick(s, NAMEA)} ${pick(s, NAMEB)}`; rebudget(w); },
+  'p-new': () => { top(); const s = S(); st().wiz = { cat: null, target: 'mainstream', specs: {}, budget: 0, budgetMul: 1, name: '', outsource: true, step: 0 }; st().sel = null; },
+  'w-cancel': () => { st().wiz = null; }, 'w-back': () => { ws().cat = null; top(); },
+  'w-cat': el => { top(); const s = S(); const w = ws(); const cat = CAT[el.dataset.id as CatId]; w.cat = cat.id; w.specs = P.defaultSpecs(s, cat); w.target = (SEGS.filter(g => cat.seg[g] > 0.03).sort((a, b) => cat.seg[b] - cat.seg[a])[0]) as Seg; w.budgetMul = 1; w.outsource = cat.cls !== 'sw' ? true : false; w.name = `${pick(s, NAMEA)} ${pick(s, NAMEB)}`; rebudget(w); },
   'w-target': el => { ws().target = el.dataset.id as Seg; }, 'w-rand': () => { ws().name = `${pick(S(), NAMEA)} ${pick(S(), NAMEB)}`; },
-  'w-create': () => { const s = S(); const w = ws(); const r = P.createProduct(s, { cat: w.cat!, name: w.name, target: w.target, specs: w.specs, budget: w.budget, outsource: w.outsource }); app.toast(r.msg, r.ok ? 'good' : 'warn'); if (r.ok) { st().wiz = null; st().sel = r.id!; P.autoAssign(s, r.id!); app.sfx('success'); } else app.sfx('error'); },
-  'p-open': el => { st().sel = +el.dataset.id!; }, 'p-close': () => { st().sel = null; },
+  'w-create': () => { top(); const s = S(); const w = ws(); const r = P.createProduct(s, { cat: w.cat!, name: w.name, target: w.target, specs: w.specs, budget: w.budget, outsource: w.outsource }); app.toast(r.msg, r.ok ? 'good' : 'warn'); if (r.ok) { st().wiz = null; st().sel = r.id!; P.autoAssign(s, r.id!); app.sfx('success'); } else app.sfx('error'); },
+  'p-open': el => { top(); st().sel = +el.dataset.id!; }, 'p-close': () => { st().sel = null; },
   'p-assign': el => { const r = P.assign(S(), +el.dataset.pid!, +el.dataset.id!); if (!r.ok) app.toast(r.msg, 'warn'); },
   'p-unassign': el => { P.unassign(S(), +el.dataset.id!); }, 'p-auto': el => { const r = P.autoAssign(S(), +el.dataset.id!); app.toast(r.msg, r.ok ? 'good' : 'warn'); },
   'p-topup': el => { const s = S(); const p = P.getProduct(s, +el.dataset.id!)!; const r = P.topUpBudget(s, p.id, p.budget * +el.dataset.mul!); app.toast(r.msg, r.ok ? 'good' : 'warn'); },

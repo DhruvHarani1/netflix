@@ -38,6 +38,8 @@ function nice(v: number, up: boolean) { if (v === 0) return 0; const e = Math.po
 
 function render(ctx: CanvasRenderingContext2D, cfg: ChartCfg, W: number, H: number, hi: number) {
   const padL = 52, padR = 10, padT = cfg.legend === false ? 8 : 22, padB = cfg.labels ? 20 : 8;
+  if (!cfg.candles && cfg.series) for (const sr of cfg.series) if (sr.data.length === 1) sr.data = [sr.data[0], sr.data[0]];
+  if (cfg.labels && cfg.labels.length === 1) cfg.labels = [cfg.labels[0], cfg.labels[0]];
   const n = count(cfg); const fmt = cfg.fmt || ((v: number) => v.toFixed(0));
   const txt = css('--text-dim'), grid = css('--line');
   ctx.font = '10.5px ui-monospace, "JetBrains Mono", Menlo, monospace'; ctx.textBaseline = 'middle';

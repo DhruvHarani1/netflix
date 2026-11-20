@@ -7,6 +7,7 @@ import { TECH_BY_ID } from '../../data/research';
 import { fmtDate, MONTHS, dateOf } from '../../sim/util';
 import { opexTotal } from '../../sim/ledger';
 import * as ach from '../../sim/achievements';
+import { monthlyBurn } from '../../sim/finance';
 import type { GameState } from '../../sim/types';
 import './dashboard.css';
 
@@ -81,6 +82,6 @@ registerView({
   },
 });
 function runway(s: GameState): string {
-  const L = s.fin.ledger.last; const burn = L.cogs + opexTotal(L) - L.rev; if (burn <= 0) return '<span class="pos">cash-flow positive</span>';
+  const burn = monthlyBurn(s); if (burn <= 0) return '<span class="pos">cash-flow positive</span>';
   const months = s.fin.cash / burn; return `runway ${months > 60 ? '5y+' : months.toFixed(1) + ' mo'}`;
 }

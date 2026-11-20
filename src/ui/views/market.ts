@@ -11,7 +11,7 @@ import './market.css';
 const sel = () => (ui.sel.market ||= { cat: null as CatId | null });
 function catTable(s: GameState): string {
   const rows = CATS.map(c => { const cm = s.market.cats[c.id]; const nr = s.rivals.filter(r => r.status === 'active' && r.offers[c.id]).length; const mine = s.products.filter(p => p.status === 'live' && p.cat === c.id).length;
-    const rev = cm.rev30 * 30;
+    const rev = cm.rev30;
     return `<tr class="${cm.unlocked ? '' : 'dimrow'}" data-act="m-cat" data-id="${c.id}" style="cursor:pointer"><td>${c.icon} <b>${c.name}</b><br><small class="dim">${c.group}</small></td><td class="r num">${money(cm.size * cm.ref * (c.sub ? 6 : 1))}</td><td class="r num ${cm.growth > .1 ? 'pos' : ''}">${pct(cm.growth, 1)}</td><td class="r num">$${cm.ref.toFixed(cm.ref < 10 ? 2 : 0)}</td><td class="r num">${cm.avgQ.toFixed(0)}</td><td class="r">${trend(cm.trend)}</td><td class="r num">${nr}</td><td class="r num">${mine ? `<b style="color:var(--accent)">${pct(cm.playerShare, 1)}</b>` : '—'}</td><td class="r">${cm.unlocked ? badge('open', 'good') : badge('locked', 'warn')}</td></tr>`; }).join('');
   return `<table class="tbl click"><thead><tr><th>Category</th><th class="r">Market /yr</th><th class="r">Growth</th><th class="r">Ref. price</th><th class="r">Avg quality</th><th class="r">Trend</th><th class="r">Rivals</th><th class="r">Your share</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
 }
@@ -42,7 +42,7 @@ function reviews(s: GameState): string {
 function economy(s: GameState): string {
   const e = s.market.econ;
   return `<div class="kpis mb">${kpi('Cycle', `<span style="text-transform:capitalize;color:${e.cycle === 'recession' ? 'var(--bad)' : e.cycle === 'boom' ? 'var(--good)' : 'var(--text)'}">${e.cycle}</span>`, `demand ×${e.demandMult.toFixed(2)}`)}${kpi('GDP growth', pct(e.gdp / 100, 1))}${kpi('Interest rate', pct(e.rate, 2))}${kpi('Inflation', pct(e.inflation, 1))}${kpi('Consumer confidence', e.confidence.toFixed(0))}${kpi('Unemployment', pct(e.unemployment, 1))}</div>
-  <div class="grid g2">${panel('Industry revenue by category (30d)', chart('m-ind', () => ({ type: 'bar', series: [{ name: 'Revenue', color: '#4cc9f0', data: CATS.map(c => s.market.cats[c.id].rev30 * 30) }], labels: CATS.map(c => c.name.slice(0, 5)), fmt: money, legend: false }), 220))}
+  <div class="grid g2">${panel('Industry revenue by category (30d)', chart('m-ind', () => ({ type: 'bar', series: [{ name: 'Revenue', color: '#4cc9f0', data: CATS.map(c => s.market.cats[c.id].rev30) }], labels: CATS.map(c => c.name.slice(0, 5)), fmt: money, legend: false }), 220))}
   ${panel('Regional demand', table(['Region', 'Weight', 'Buying power', 'Your presence', 'Your revenue'], REGIONS.map(r => [`<b>${r.name}</b>`, `<span class="num">${(r.pop * 100).toFixed(0)}%</span>`, `<span class="num">×${r.power.toFixed(2)}</span>`, `<span class="num">${s.regions[r.id].presence.toFixed(0)}%</span>`, `<span class="num">${money(s.regions[r.id].revenueEma * 30)}</span>`]), '', ['', 'r', 'r', 'r', 'r']))}</div>`;
 }
 registerView({

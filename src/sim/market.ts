@@ -120,7 +120,7 @@ export function daily(s: GameState): void {
         const rev = recognise(s, cat, o, u, 'rival'); const r = s.rivals[o.rivalIdx!]; r.revM += rev.rev; r.costM += rev.cogs; catUnits += u; catRev += rev.rev; shares[r.id] = (shares[r.id] || 0) + rev.rev;
       } else { const rr = u * (o.price); catUnits += u; catRev += rr; shares.gen = (shares.gen || 0) + rr; }
     }
-    cm.rev30 += (catRev - cm.rev30) * α; cm.units30 += (catUnits - cm.units30) * α;
+    cm.rev30 += (catRev * 30 - cm.rev30) * α; cm.units30 += (catUnits * 30 - cm.units30) * α; // 30-day-equivalent totals
     if (isMonthStart(s.day + 1) || !cm.shares) { /* shares recomputed monthly */ }
     // smooth share (EMA of revenue) stored in cm.shares as running revenue EMA fractions
     const tr = Object.values(shares).reduce((a, b) => a + b, 0) || 1;

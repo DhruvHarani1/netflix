@@ -1,5 +1,6 @@
 import type { GameState } from './types';
 import { SAVE_VERSION } from './state';
+import LZ from 'lz-string';
 
 const KEY = (slot: number | 'auto') => `tt.save.${slot}`;
 export interface SaveMeta { slot: number | 'auto'; name: string; founder: string; color: string; logo: number; day: number; cash: number; valuation: number; stage: number; difficulty: string; savedAt: number; headcount: number; }
@@ -16,11 +17,11 @@ export function metaOf(s: GameState, slot: number | 'auto'): SaveMeta {
 }
 export function saveGame(s: GameState, slot: number | 'auto'): { ok: boolean; error?: string } {
   try {
-    localStorage.setItem(KEY(slot), serialize(s)); localStorage.setItem(KEY(slot) + '.meta', JSON.stringify(metaOf(s, slot))); return { ok: true };
+    localStorage.setItem(KEY(slot), 'z:' + LZ.compressToUTF16(serialize(s))); localStorage.setItem(KEY(slot) + '.meta', JSON.stringify(metaOf(s, slot))); return { ok: true };
   } catch (e: any) { return { ok: false, error: e?.name === 'QuotaExceededError' ? 'Browser storage is full — delete an old save or export to a file.' : String(e) }; }
 }
 export function loadGame(slot: number | 'auto'): GameState | null {
-  try { const t = localStorage.getItem(KEY(slot)); return t ? deserialize(t) : null; } catch { return null; }
+  try { let t = localStorage.getItem(KEY(slot)); if (!t) return null; if (t.startsWith('z:')) t = LZ.decompressFromUTF16(t.slice(2)) || ''; return t ? deserialize(t) : null; } catch { return null; }
 }
 export function getMeta(slot: number | 'auto'): SaveMeta | null { try { const t = localStorage.getItem(KEY(slot) + '.meta'); return t ? JSON.parse(t) : null; } catch { return null; } }
 export function deleteSave(slot: number | 'auto') { try { localStorage.removeItem(KEY(slot)); localStorage.removeItem(KEY(slot) + '.meta'); } catch {} }
