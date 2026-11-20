@@ -1,0 +1,2 @@
+.segs{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}.seg{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}.seg-h{display:flex;gap:12px;margin-bottom:10px}.seg-h small{display:block;color:var(--text-dim);margin-top:2px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px}.dimrow td{opacity:.5}

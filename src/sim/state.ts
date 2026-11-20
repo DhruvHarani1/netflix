@@ -2,7 +2,7 @@ import type { GameState, Dept, RegionId, Seg, CatId, ComplianceKey, SpecId, Diff
 import { DEPTS, SEGS, REGIONS, DIFF, CAPITALS, SPEC } from '../data/core';
 import { CATS } from '../data/categories';
 import { emptyLedger } from './ledger';
-import { MODULES } from './engine';
+import { MODULES, recordHistory } from './engine';
 
 export interface NewGameConfig {
   name: string; slogan: string; founder: string; color: string; logo: number; hq: RegionId; city: string; spec: SpecId;
@@ -53,5 +53,6 @@ export function newGame(cfg: NewGameConfig): GameState {
   const M = MODULES;
   M.market.init(s); M.research.init(s); M.facilities.init(s); M.people.init(s); M.finance.init(s); M.marketing.init(s); M.expansion.init(s);
   M.rivals.init(s); M.ecosystem.init(s); M.stock.init(s); M.ma.init(s); M.products.init(s); M.legal.init(s); M.events.init(s); M.achievements.init(s);
+  recordHistory(s);
   return s;
 }

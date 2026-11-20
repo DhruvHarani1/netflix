@@ -1,0 +1,12 @@
+.news-hero{display:grid;grid-template-columns:1.6fr 1fr;gap:14px;margin-bottom:14px}
+.story{position:relative;border:1px solid var(--line);border-radius:14px;padding:22px 24px;background:linear-gradient(135deg,rgba(76,201,240,.1),rgba(124,92,255,.07) 55%,var(--panel));overflow:hidden;min-height:150px}
+.story.bad{background:linear-gradient(135deg,rgba(255,93,115,.14),var(--panel))}.story.good{background:linear-gradient(135deg,rgba(46,230,166,.13),var(--panel))}
+.story small{font:600 10.5px var(--mono);letter-spacing:.14em;color:var(--text-dim);text-transform:uppercase}.story h2{font-size:24px;line-height:1.2;margin:8px 0}.story p{color:var(--text-dim);margin:0}
+.nrow{display:grid;grid-template-columns:78px 86px 1fr;gap:12px;padding:10px 14px;border-bottom:1px solid rgba(34,42,56,.6);align-items:baseline}.nrow:hover{background:rgba(255,255,255,.02)}
+.nrow .d{font:11px var(--mono);color:var(--text-mute)}.nrow .k{font:700 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim)}.nrow b{font-weight:600}.nrow p{margin:2px 0 0;color:var(--text-dim);font-size:12.5px}
+.nrow.good b{color:var(--good)}.nrow.bad b{color:#ff8a9a}
+.rchip{display:inline-block;font:600 10px var(--mono);padding:1px 7px;border-radius:10px;border:1px solid;margin-left:6px;vertical-align:middle}
+.dlog{padding:11px 14px;border-bottom:1px solid rgba(34,42,56,.6);display:flex;gap:12px}.dlog .mi{font-size:22px}.dlog small{color:var(--text-mute);font-family:var(--mono);font-size:10.5px}.dlog .pick{color:var(--accent);font-weight:600}.dlog .out{color:var(--text-dim);font-size:12.5px}
+.econ-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:30px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-size:12px}
+.econ-badge.boom{background:rgba(46,230,166,.15);color:var(--good)}.econ-badge.normal{background:rgba(76,201,240,.12);color:var(--accent)}.econ-badge.slowdown{background:rgba(255,183,3,.14);color:var(--warn)}.econ-badge.recession{background:rgba(255,93,115,.16);color:var(--bad)}
+@media(max-width:1000px){.news-hero{grid-template-columns:1fr}.nrow{grid-template-columns:70px 1fr}.nrow .k{display:none}}

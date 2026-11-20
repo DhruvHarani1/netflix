@@ -1,0 +1,5 @@
+.subgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}
+.subcard{background:linear-gradient(160deg,color-mix(in srgb,var(--c) 14%,var(--panel)),var(--panel));border:1px solid var(--line2);border-top:3px solid var(--c);border-radius:12px;padding:16px}
+.subcard header{display:flex;gap:10px;align-items:center;margin-bottom:12px}.subcard header small{display:block;color:var(--text-dim);font-size:11px}
+.subgrid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}.subgrid2 span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mute)}
+.subcard .lbl{font-size:11px;color:var(--text-dim);margin:8px 0 3px}

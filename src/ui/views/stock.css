@@ -1,0 +1,6 @@
+.tick{display:flex;gap:10px;align-items:baseline;background:#07090d;border:1px solid var(--line2);border-radius:8px;padding:6px 14px;font-family:var(--mono)}.tick span{color:var(--warn);font-size:11px;letter-spacing:.1em}.tick b{font-size:16px}.tick em{font-style:normal;font-size:12px}
+.quote{display:flex;gap:14px;align-items:baseline;margin-bottom:10px}.quote .big{font-size:36px;font-weight:700}
+.fg{padding:6px 0}.fgbar{position:relative;height:10px;border-radius:6px;background:linear-gradient(90deg,#ff5d73,#ffb703,#2ee6a6);margin-bottom:8px}.fgbar i{position:absolute;top:-4px;width:4px;height:18px;border-radius:2px;background:#fff;box-shadow:0 0 8px #fff;transform:translateX(-2px);transition:left .5s}
+.anl{display:flex;height:10px;border-radius:6px;overflow:hidden;margin-bottom:6px}.anl i{display:block}.anl .g{background:var(--good)}.anl .y{background:var(--warn)}.anl .r{background:var(--bad)}.warn-c{color:var(--warn)}
+.checks{list-style:none;padding:0;margin:0 0 12px}.checks li{padding:6px 0;border-bottom:1px solid var(--line)}.checks .ok{color:var(--good)}.checks .no{color:var(--bad)}
+.btn.block{width:100%;justify-content:center}

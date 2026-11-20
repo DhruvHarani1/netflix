@@ -70,12 +70,12 @@ export interface Employee {
   edu: string; spec: Tag | 'general'; heads: number; // heads>1 = a team of N people with averaged stats
   traits: string[]; hired: number; project: number | null; // product id they work on
   trainUntil: number; lastReview: number; leader: boolean; // is department head
-  notes?: string;
+  notes?: string; baseProd?: number; rating?: number; wantsRaise?: boolean; trainKind?: string; conflictWith?: number;
 }
 export interface Candidate extends Omit<Employee, 'project' | 'trainUntil' | 'lastReview' | 'leader' | 'hired'> {
   ask: number; interviewed: boolean; estSkill: number; expires: number; poached?: boolean; fromRival?: string;
 }
-export interface PeopleState { emps: Employee[]; pool: Candidate[]; nextId: number; conflicts: { id: number; a: number; b: number; day: number }[]; policy: { wage: number /*0.8-1.4 pay stance*/; perks: number /*0-3*/; remote: boolean } }
+export interface PeopleState { emps: Employee[]; pool: Candidate[]; nextId: number; conflicts: { id: number; a: number; b: number; day: number }[]; policy: { wage: number /*0.8-1.4 pay stance*/; perks: number /*0-3*/; remote: boolean }; morale?: number /*temporary company-wide penalty, decays*/; poach?: { id: number; empId: number; rival: string; offer: number; deadline: number }[]; hist?: { day: number; heads: number }[] }
 
 // ------------------------------------------------------------ RESEARCH ----
 export interface TechNode {
@@ -114,6 +114,7 @@ export interface Product {
   reviews: Review[]; hist: { day: number; units: number; rev: number; base: number }[];
   outsource: boolean; promo: number /*product-specific hype 0-100*/; protoNote: string; updating: boolean; lastUpdate: number;
   sold30: number; lost30: number /*lost sales from capacity*/; platformUsers: number; devBuzz: number;
+  teamSkill: number; stalled: boolean; pendingSpecs?: Record<string, number>; qaSpent: number; rushed: boolean; budgetRatio: number; note?: string; rampLimited?: boolean; rampCap?: number;
 }
 
 // ------------------------------------------------------------- MARKETING --
@@ -155,7 +156,7 @@ export interface Rival {
   techGrant?: string; // startups: acquiring grants this tech
   negative: number; // months of negative cash
   founderOwned: number; // fraction of shares not on open market (control)
-  forSale: boolean; askMult: number;
+  forSale: boolean; askMult: number; takeoverShield?: number;
 }
 
 // ------------------------------------------------------------ MARKET -------
@@ -193,16 +194,16 @@ export interface MAState { subs: Subsidiary[]; offers: MAOffer[]; nextOfferId: n
 // ------------------------------------------------------------- EVENTS ------
 export interface GameEvent {
   uid: number; tpl: string; day: number; deadline: number; title: string; body: string;
-  params: Record<string, any>; choices: { label: string; hint: string }[]; defaultChoice: number; resolved: boolean; picked?: number; severity: 'good' | 'bad' | 'neutral'; icon: string;
+  params: Record<string, any>; choices: { label: string; hint: string }[]; defaultChoice: number; resolved: boolean; picked?: number; outcome?: string; severity: 'good' | 'bad' | 'neutral'; icon: string;
 }
 export interface NewsItem { id: number; day: number; headline: string; body: string; kind: 'market' | 'company' | 'rival' | 'tech' | 'law' | 'world' | 'finance' | 'people'; tone: 'good' | 'bad' | 'neutral'; rival?: string }
 export interface EventState { pending: GameEvent[]; log: GameEvent[]; nextUid: number; cooldown: Record<string, number>; news: NewsItem[]; nextNews: number; flags: Record<string, any> }
 
 // -------------------------------------------------------------- LEGAL ------
-export interface LegalCase { id: number; kind: string; title: string; opp: string; day: number; ends: number; exposure: number; status: 'open' | 'won' | 'lost' | 'settled'; desc: string; product?: number }
+export interface LegalCase { id: number; kind: string; title: string; opp: string; day: number; ends: number; exposure: number; status: 'open' | 'won' | 'lost' | 'settled'; desc: string; product?: number; stance?: 'fight' | 'default'; fee?: number; outcome?: string; cat?: CatId }
 export interface LegalState {
   compliance: Record<ComplianceKey, number>; policies: Record<string, boolean>; cases: LegalCase[]; nextId: number;
-  fines: number; watch: number; /*regulatory heat 0-100*/ investigations: { kind: string; day: number; ends: number; cat?: CatId }[];
+  fines: number; boost?: Record<string, number>; fineHist?: { day: number; amount: number; text: string }[]; watch: number; /*regulatory heat 0-100*/ investigations: { kind: string; day: number; ends: number; cat?: CatId }[];
 }
 
 // ---------------------------------------------------------- ACHIEVEMENTS ---
@@ -243,4 +244,4 @@ export interface GameState {
 
 // Notification emitted to UI/audio layer (not saved)
 export type SfxName = 'click' | 'success' | 'error' | 'notify' | 'launch' | 'achievement' | 'cash' | 'research' | 'warn' | 'hire' | 'tick';
-export interface Signal { type: 'toast' | 'sfx' | 'modal'; text?: string; tone?: 'good' | 'bad' | 'neutral' | 'info'; sfx?: SfxName; ref?: string }
+export interface Signal { type: 'toast' | 'sfx' | 'modal'; text?: string; tone?: 'good' | 'bad' | 'neutral' | 'info' | 'warn'; sfx?: SfxName; ref?: string }

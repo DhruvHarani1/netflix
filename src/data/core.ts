@@ -58,8 +58,8 @@ export const DIFFS: DiffDef[] = [
 export const DIFF: Record<Difficulty, DiffDef> = Object.fromEntries(DIFFS.map(d => [d.id, d])) as any;
 
 export const CAPITALS = [
-  { id: 'bootstrap', name: 'Bootstrapped', amount: 250_000, blurb: 'Garage startup. Tiny team, no safety net.', emp: 2, debt: 0, rep: 0 },
-  { id: 'seed', name: 'Seed Funded', amount: 1_000_000, blurb: 'Friends, family and a small angel round. Room to move.', emp: 4, debt: 0, rep: 2 },
+  { id: 'bootstrap', name: 'Bootstrapped', amount: 400_000, blurb: 'Garage startup. Tiny team, no safety net.', emp: 2, debt: 0, rep: 0 },
+  { id: 'seed', name: 'Seed Funded', amount: 1_500_000, blurb: 'Friends, family and a small angel round. Room to move.', emp: 4, debt: 0, rep: 2 },
   { id: 'series', name: 'Series A Backed', amount: 5_000_000, blurb: 'VC cash, a real team — and investors who expect growth.', emp: 8, debt: 0, rep: 5 },
   { id: 'founder', name: 'Serial Founder', amount: 15_000_000, blurb: 'A previous exit funds you. Press attention and high expectations.', emp: 14, debt: 0, rep: 10 },
   { id: 'loan', name: 'Leveraged Launch', amount: 4_000_000, blurb: 'Bank-financed with a heavy loan. Cash now, interest forever.', emp: 8, debt: 3_000_000, rep: 0 },

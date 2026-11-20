@@ -3,7 +3,8 @@ import { ui, G, S } from './state';
 import { views, actions, inputs, app, esc, money, logo, fmtDay, badge, btn, num } from './kit';
 import { drawAllCharts } from './charts';
 import { playSfx } from './audio';
-import { tick } from '../sim/engine';
+import { tick, advance } from '../sim/engine';
+import { newGame } from '../sim/state';
 import { drainSignals, monthIndex } from '../sim/util';
 import { saveGame, loadGame, saveSettings, loadSettings } from '../sim/save';
 import { resolveEvent } from '../sim/events';
@@ -55,7 +56,7 @@ export function boot() {
   window.addEventListener('resize', () => drawAllCharts());
   document.addEventListener('visibilitychange', () => { if (document.hidden && G.s && ui.screen === 'game' && ui.settings.autosave) saveGame(G.s, 'auto'); });
   window.addEventListener('beforeunload', () => { if (G.s && ui.screen === 'game' && ui.settings.autosave && !G.s.gameOver) saveGame(G.s, 'auto'); });
-  (window as any).__tt = { G, ui, tick, S };
+  (window as any).__tt = { G, ui, tick, S, newGame, startGame, app, advance };
   renderNow();
   setInterval(loop, 40);
 }
@@ -135,11 +136,11 @@ function topHtml(): string {
   const s = G.s!; const d = s.derived; const L = s.fin.ledger.last; const burn = L.rev - (L.cogs + Object.values(L.exp).reduce((a, b) => a + b, 0));
   const pend = s.events.pending.filter(e => !e.resolved && e.choices.length).length;
   const sp = [0, 1, 2, 5, 10];
-  return `<div class="tk"><span class="tl">CASH</span><b class="num ${s.fin.cash < 0 ? 'neg' : ''}">${money(s.fin.cash)}</b></div>
-  <div class="tk"><span class="tl">VALUATION</span><b class="num">${money(d.valuation)}</b></div>
-  <div class="tk"><span class="tl">LAST MONTH</span><b class="num ${burn >= 0 ? 'pos' : 'neg'}">${burn >= 0 ? '+' : ''}${money(burn)}</b></div>
-  <div class="tk hide-sm"><span class="tl">STAFF</span><b class="num">${num(d.headcount, 0)}</b></div>
-  ${s.stock.public ? `<div class="tk hide-sm"><span class="tl">${esc(s.co.name.slice(0, 4).toUpperCase())}</span><b class="num">$${s.stock.px.toFixed(2)}</b></div>` : ''}
+  return `<div class="tk"><span class="tkl">CASH</span><b class="num ${s.fin.cash < 0 ? 'neg' : ''}">${money(s.fin.cash)}</b></div>
+  <div class="tk"><span class="tkl">VALUATION</span><b class="num">${money(d.valuation)}</b></div>
+  <div class="tk"><span class="tkl">LAST MONTH</span><b class="num ${burn >= 0 ? 'pos' : 'neg'}">${burn >= 0 ? '+' : ''}${money(burn)}</b></div>
+  <div class="tk hide-sm"><span class="tkl">STAFF</span><b class="num">${num(d.headcount, 0)}</b></div>
+  ${s.stock.public ? `<div class="tk hide-sm"><span class="tkl">${esc(s.co.name.slice(0, 4).toUpperCase())}</span><b class="num">$${s.stock.px.toFixed(2)}</b></div>` : ''}
   <div class="grow"></div>
   <div class="clock"><span class="num">${fmtDay(s.day)}</span><small>${s.mode === 'sandbox' ? 'Sandbox' : s.difficulty}</small></div>
   <div class="speed">${sp.map(v => `<button class="sp ${(v === 0 ? ui.paused : !ui.paused && ui.speed === v) ? 'on' : ''}" data-act="speed" data-v="${v}" title="${v === 0 ? 'Pause (Space)' : v + 'x'}">${v === 0 ? '❚❚' : v + '×'}</button>`).join('')}</div>

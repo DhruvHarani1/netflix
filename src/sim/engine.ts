@@ -35,7 +35,7 @@ export function tick(s: GameState): void {
 }
 export function advance(s: GameState, days: number) { for (let i = 0; i < days && !s.gameOver; i++) tick(s); }
 
-function recordHistory(s: GameState) {
+export function recordHistory(s: GameState) {
   const L = s.fin.ledger.last; const d = s.derived;
   let users = 0; for (const p of s.products) if (p.status === 'live') users += p.base;
   const exp = L.cogs + Object.values(L.exp).reduce((a, b) => a + b, 0);

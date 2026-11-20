@@ -65,7 +65,7 @@ function render(ctx: CanvasRenderingContext2D, cfg: ChartCfg, W: number, H: numb
     cfg.candles.forEach((c, i) => { const x = padL + ((i + .5) / n) * cw; const col = c.c >= c.o ? up : dn; ctx.strokeStyle = col; ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x, Y(c.h)); ctx.lineTo(x, Y(c.l)); ctx.stroke(); const y1 = Y(Math.max(c.o, c.c)), y2 = Y(Math.min(c.o, c.c)); ctx.fillRect(x - bw / 2, y1, bw, Math.max(1, y2 - y1)); });
   } else if (cfg.type === 'bar') {
     const ser = cfg.series!; const bw = Math.max(2, (cw / n) * .72 / (cfg.stacked ? 1 : ser.length));
-    for (let i = 0; i < n; i++) { let acc = 0; ser.forEach((s, si) => { const v = s.data[i] || 0; ctx.fillStyle = s.color; const x = X(i) - (cfg.stacked ? bw / 2 : (bw * ser.length) / 2 - si * bw); const y0 = Y(cfg.stacked ? acc : 0), y1 = Y(cfg.stacked ? acc + v : v); ctx.globalAlpha = hi >= 0 && hi !== i ? .72 : 1; ctx.fillRect(x, Math.min(y0, y1), bw - 1, Math.abs(y1 - y0)); acc += v; }); }
+    for (let i = 0; i < n; i++) { let acc = 0; ser.forEach((s, si) => { const v = s.data[i] || 0; ctx.fillStyle = v < 0 && !cfg.stacked ? css('--bad') : s.color; const x = X(i) - (cfg.stacked ? bw / 2 : (bw * ser.length) / 2 - si * bw); const y0 = Y(cfg.stacked ? acc : 0), y1 = Y(cfg.stacked ? acc + v : v); ctx.globalAlpha = hi >= 0 && hi !== i ? .72 : 1; ctx.fillRect(x, Math.min(y0, y1), bw - 1, Math.abs(y1 - y0)); acc += v; }); }
     ctx.globalAlpha = 1;
   } else {
     for (const s of cfg.series!) {

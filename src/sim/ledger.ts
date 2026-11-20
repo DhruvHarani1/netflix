@@ -25,9 +25,8 @@ export function expense(s: GameState, amt: number, key: ExpKey) {
 export function depreciate(s: GameState, amt: number) {
   amt = Math.min(amt, s.fin.ledger.ppe); if (!(amt > 0)) return;
   s.fin.ledger.ppe -= amt; s.fin.ledger.retained -= amt;
-  both(s, p => { p.dep += amt; p.exp.dep = (p.exp.dep || 0) + amt; p.ni -= amt; p.cfo += 0; });
-  // depreciation lowers NI but is non-cash: add back in CFO
-  both(s, p => { p.cfo += amt; });
+  // depreciation lowers NI but is non-cash: CFO (cash-tracked) is unchanged
+  both(s, p => { p.dep += amt; p.exp.dep = (p.exp.dep || 0) + amt; p.ni -= amt; });
 }
 /** Purchase of a fixed asset (cash -> ppe). */
 export function capex(s: GameState, amt: number) {
@@ -38,20 +37,20 @@ export function capex(s: GameState, amt: number) {
 export function saleOfAsset(s: GameState, book: number, proceeds: number) {
   const b = Math.min(book, s.fin.ledger.ppe); s.fin.ledger.ppe -= b; s.fin.cash += proceeds;
   const g = proceeds - b; s.fin.ledger.retained += g;
-  both(s, p => { p.cfi += proceeds; p.gains += g; p.ni += g; p.cfo -= g; });
+  both(s, p => { p.cfi += proceeds; p.gains += g; p.ni += g; });
 }
 /** Buying shares / businesses recorded as investments (cash -> invest). */
 export function investIn(s: GameState, amt: number) { if (!(amt > 0)) return; s.fin.cash -= amt; s.fin.ledger.invest += amt; both(s, p => { p.cfi -= amt; }); }
 /** Selling investments at proceeds vs. carried cost. */
 export function divest(s: GameState, carry: number, proceeds: number) {
   const c = Math.min(carry, s.fin.ledger.invest); s.fin.ledger.invest -= c; s.fin.cash += proceeds; const g = proceeds - c; s.fin.ledger.retained += g;
-  both(s, p => { p.cfi += proceeds; p.gains += g; p.ni += g; p.cfo -= g; });
+  both(s, p => { p.cfi += proceeds; p.gains += g; p.ni += g; });
 }
 /** Mark investments to market (non-cash unrealised gain). */
 export function markInvest(s: GameState, newCarry: number) {
   const d = newCarry - s.fin.ledger.invest; if (Math.abs(d) < 1) return;
   s.fin.ledger.invest = newCarry; s.fin.ledger.retained += d;
-  both(s, p => { p.gains += d; p.ni += d; p.cfo -= d; });
+  both(s, p => { p.gains += d; p.ni += d; });
 }
 /** Acquire a business: cash out, goodwill + (optionally) property recognised. */
 export function acquireBusiness(s: GameState, price: number, ppeValue = 0) {
@@ -60,7 +59,7 @@ export function acquireBusiness(s: GameState, price: number, ppeValue = 0) {
 /** Dispose of goodwill when selling a subsidiary. */
 export function saleOfBusiness(s: GameState, carry: number, proceeds: number) {
   const c = Math.min(carry, s.fin.ledger.goodwill); s.fin.ledger.goodwill -= c; s.fin.cash += proceeds; const g = proceeds - c; s.fin.ledger.retained += g;
-  both(s, p => { p.cfi += proceeds; p.gains += g; p.ni += g; p.cfo -= g; });
+  both(s, p => { p.cfi += proceeds; p.gains += g; p.ni += g; });
 }
 export function impairGoodwill(s: GameState, amt: number) { amt = Math.min(amt, s.fin.ledger.goodwill); if (amt <= 0) return; s.fin.ledger.goodwill -= amt; s.fin.ledger.retained -= amt; both(s, p => { p.gains -= amt; p.ni -= amt; }); }
 // ---- financing -------------------------------------------------------------
