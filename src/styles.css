@@ -80,7 +80,7 @@ pre{white-space:pre-wrap;font:11px var(--mono);color:var(--bad)}
 
 /* ---------- toasts / modal ---------- */
 #toasts{position:fixed;top:66px;right:16px;z-index:200;display:flex;flex-direction:column;gap:8px;pointer-events:none}
-.toast{pointer-events:auto;min-width:240px;max-width:380px;background:var(--panel-hi);border:1px solid var(--line2);border-radius:10px;padding:10px 14px;box-shadow:var(--shadow);display:flex;gap:10px;align-items:flex-start;animation:tin .28s ease}
+.toast{pointer-events:none;min-width:240px;max-width:380px;background:var(--panel-hi);border:1px solid var(--line2);border-radius:10px;padding:10px 14px;box-shadow:var(--shadow);display:flex;gap:10px;align-items:flex-start;animation:tin .28s ease}
 .toast i{width:4px;align-self:stretch;border-radius:3px;background:var(--info);flex:none}.toast.good i{background:var(--good)}.toast.bad i{background:var(--bad)}.toast.warn i{background:var(--warn)}.toast.out{opacity:0;transform:translateX(30px);transition:.4s}
 @keyframes tin{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
 #modal{position:fixed;inset:0;z-index:150;display:flex;align-items:center;justify-content:center;padding:20px}.mback{position:absolute;inset:0;background:rgba(3,5,9,.72);backdrop-filter:blur(6px);animation:fin .2s}

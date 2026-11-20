@@ -39,11 +39,13 @@ app.save = (slot) => {
 };
 
 // ----------------------------------------------------------------- toasts --
+const recentToasts = new Map<string, number>();
 export function pushToast(text: string, tone = 'info') {
+  const nowT = performance.now(); if ((recentToasts.get(text) ?? -1e9) > nowT - 6000) return; recentToasts.set(text, nowT); if (recentToasts.size > 60) recentToasts.clear();
   ui.notes.unshift({ day: G.s?.day ?? 0, text, tone }); if (ui.notes.length > 80) ui.notes.pop();
   const el = document.getElementById('toasts'); if (!el) return;
   const d = document.createElement('div'); d.className = `toast ${tone}`; d.innerHTML = `<i></i><span>${esc(text)}</span>`; el.appendChild(d);
-  while (el.children.length > 5) el.removeChild(el.firstChild!);
+  while (el.children.length > 4) el.removeChild(el.firstChild!);
   setTimeout(() => { d.classList.add('out'); setTimeout(() => d.remove(), 400); }, 4600);
 }
 
