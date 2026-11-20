@@ -182,7 +182,7 @@ export function monthly(s: GameState): void {
   for (const cat of CATS) {
     const cm = s.market.cats[cat.id]; cm.unlocked = unlocked(s, cat.id);
     cm.size *= 1 + (cm.growth * (econ.cycle === 'recession' ? 0.4 : econ.cycle === 'boom' ? 1.3 : 1)) / 12;
-    cm.growth = Math.max(0.004, cm.growth * 0.9965);
+    cm.growth = Math.max(0.006, cm.growth * 0.985);
     cm.ref *= 1 - 0.018 / 12; // tech deflation
     cm.trend += (-cm.trend * 0.08) + gauss(s) * 0.04;
     cm.trend = clamp(cm.trend, -1, 1);

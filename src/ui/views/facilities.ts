@@ -13,7 +13,7 @@ const act = (r: { ok: boolean; msg: string }) => app.toast(r.msg, r.ok ? 'good' 
 
 function card(f: Facility) {
   const s = S(); const d = FAC[f.kind]; const built = f.buildUntil <= s.day; const rent = F.rentOf(s, f.kind, f.region, f.level);
-  const eff = d.cap[f.level - 1] ? `${num(d.cap[f.level - 1] * (1 + .2 * f.upg.capacity), 0)} staff` : '';
+  const eff = d.cap[f.level - 1] ? `${num(d.cap[f.level - 1] * (1 + .2 * f.upg.capacity), 0)} seats` : '';
   const main = d.mfg ? `${num(d.mfg[f.level - 1], 0)} units/mo` : d.dc ? `${num(d.dc[f.level - 1], 0)} customers` : d.lab ? `+${(d.lab[f.level - 1] * 100).toFixed(0)}% R&D, +1 slot` : d.test ? `+${(d.test[f.level - 1] * 100).toFixed(0)}% testing` : d.warehouse ? `+${(d.warehouse[f.level - 1] * 100).toFixed(0)}% throughput` : '';
   return `<div class="fc ${built ? '' : 'build'}" style="--c:${KC[f.kind]}"><h4><span class="big">${d.icon}</span><div class="grow">${esc(f.name)}<div class="dim sm">${REGION[f.region].name} · Level ${f.level} · ${f.own ? 'Owned' : 'Leased'}</div></div>${built ? badge('Operational', 'good') : badge(`Ready in ${f.buildUntil - s.day}d`, 'warn')}</h4>
   <div class="row between sm"><span>${[eff, main].filter(Boolean).join(' · ')}</span><span class="num">${f.own ? 'Book ' + money(f.value) : money(rent) + '/mo'}</span></div>
@@ -42,7 +42,7 @@ function buildModal() {
   return () => { const s = S(), z = bs(); const d = FAC[z.kind]; z.level = Math.min(z.level, d.maxLevel);
     const rent = F.rentOf(s, z.kind, z.region, z.level), price = F.priceOf(s, z.kind, z.region, z.level); const why = F.canBuild(s, z.kind);
     const bd = d.build[z.level - 1]; const yrs = 5; const ownCost = price + rent * d.energy * 12 * yrs + price * .003 * 12 * yrs - price * .5; const rentCost = rent * 12 * yrs + rent * d.energy * 12 * yrs;
-    const effect = d.cap[z.level - 1] ? `${num(d.cap[z.level - 1], 0)} staff` : d.mfg ? `${num(d.mfg[z.level - 1], 0)} units/mo` : d.dc ? `${num(d.dc[z.level - 1], 0)} customers` : d.lab ? `+${(d.lab[z.level - 1] * 100).toFixed(0)}% R&D & +1 slot` : d.test ? `+${(d.test[z.level - 1] * 100).toFixed(0)}% testing` : `+${((d.warehouse?.[z.level - 1] || 0) * 100).toFixed(0)}% throughput`;
+    const effect = d.cap[z.level - 1] ? `${num(d.cap[z.level - 1], 0)} seats` : d.mfg ? `${num(d.mfg[z.level - 1], 0)} units/mo` : d.dc ? `${num(d.dc[z.level - 1], 0)} customers` : d.lab ? `+${(d.lab[z.level - 1] * 100).toFixed(0)}% R&D & +1 slot` : d.test ? `+${(d.test[z.level - 1] * 100).toFixed(0)}% testing` : `+${((d.warehouse?.[z.level - 1] || 0) * 100).toFixed(0)}% throughput`;
     const outs = d.mfg ? '<br><span class="dim sm">Outsourcing alternative: contract manufacturing adds ~18% to unit cost with no capacity limit.</span>' : d.dc ? '<br><span class="dim sm">Outsourcing alternative: rented cloud adds ~25% to serving cost.</span>' : '';
     return `<div class="mhead"><h2>New facility</h2></div><div class="mbody"><div class="fb-kinds">${FACS.map(k => `<button class="fb-k ${k.kind === z.kind ? 'on' : ''}" data-act="fb-kind" data-k="${k.kind}"><span>${k.icon}</span><b>${k.name}</b><small>${k.effect}</small></button>`).join('')}</div>
     <p class="dim">${d.blurb}${why ? ` <b class="neg">${why}</b>` : ''}</p><div class="row wrap mb"><span class="dim">Region</span>${REGIONS.map(r => `<button class="chip ${z.region === r.id ? 'on' : ''}" data-act="fb-region" data-r="${r.id}">${r.short}</button>`).join('')}</div>

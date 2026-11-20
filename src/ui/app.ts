@@ -10,12 +10,15 @@ import { drainSignals, monthIndex } from '../sim/util';
 import { saveGame, loadGame, saveSettings, loadSettings } from '../sim/save';
 import { resolveEvent } from '../sim/events';
 import { STAGES } from '../data/core';
+import { TECH } from '../data/research';
+import { issueEquity } from '../sim/ledger';
 import { renderMenu, renderCreate, mountMenu, menuActions } from './screens';
 import './views';
 
 export const DAY_MS = 700;
 let acc = 0, lastT = performance.now(), lastRender = 0, lastMonth = -1, dirty = true, pointerDown = false;
 const root = () => document.getElementById('app')!;
+const shownDecisions = new Set<number>();
 
 const GROUPS: [string, string][] = [['command', 'Command'], ['build', 'Build'], ['money', 'Capital'], ['market', 'Market'], ['world', 'World'], ['risk', 'Intel']];
 
@@ -54,6 +57,7 @@ export function boot() {
   document.addEventListener('pointerdown', () => (pointerDown = true));
   document.addEventListener('pointerup', () => { pointerDown = false; });
   document.addEventListener('keydown', onKey);
+  document.addEventListener('keyup', ev => { if (ev.key === ' ' && ui.screen === 'game' && !/INPUT|TEXTAREA|SELECT/.test((ev.target as HTMLElement)?.tagName)) ev.preventDefault(); });
   window.addEventListener('resize', () => drawAllCharts());
   document.addEventListener('visibilitychange', () => { if (document.hidden && G.s && ui.screen === 'game' && ui.settings.autosave) saveGame(G.s, 'auto'); });
   window.addEventListener('beforeunload', () => { if (G.s && ui.screen === 'game' && ui.settings.autosave && !G.s.gameOver) saveGame(G.s, 'auto'); });
@@ -66,6 +70,7 @@ export function applySettings() {
   saveSettings(ui.settings);
 }
 export function startGame(s: any, slot = 1) {
+  shownDecisions.clear();
   G.s = s; ui.screen = 'game'; ui.view = 'dashboard'; ui.tab = {}; ui.sel = {}; ui.paused = true; ui.speed = 1; ui.modal = null; ui.slot = slot; lastMonth = monthIndex(s.day); acc = 0; ui.notes = [];
   renderNow();
 }
@@ -90,8 +95,8 @@ function loop() {
   if (sigs.length) dirty = true;
   if (ui.screen === 'game' && s) {
     // surface newly pending decisions
-    const pend = s.events.pending.find(e => !e.resolved && e.choices.length > 0);
-    if (pend && !ui.modal) { if (ui.settings.autoPause) ui.paused = true; openDecision(pend.uid); }
+    const pend = s.events.pending.find(e => !e.resolved && e.choices.length > 0 && !shownDecisions.has(e.uid));
+    if (pend && !ui.modal) { shownDecisions.add(pend.uid); if (ui.settings.autoPause) ui.paused = true; openDecision(pend.uid); }
     if (s.gameOver && !ui.modal) openGameOver();
   }
   if (dirty && now - lastRender > (ui.paused ? 120 : 380)) renderNow();
@@ -203,7 +208,7 @@ function onKey(ev: KeyboardEvent) {
   if (ui.screen !== 'game') return;
   if (ev.key === 'Escape') { if (ui.modal && ui.modal.id !== 'gameover' && ui.modal.id !== 'decision') { ui.modal = null; renderNow(); } else if (!ui.modal) core['open-menu'](document.body, ev); return; }
   if (ui.modal) return;
-  if (ev.key === ' ') { ev.preventDefault(); ui.paused = !ui.paused; renderNow(); }
+  if (ev.key === ' ') { ev.preventDefault(); (document.activeElement as HTMLElement | null)?.blur?.(); ui.paused = !ui.paused; renderNow(); }
   else if ('1234'.includes(ev.key) && ev.key.length === 1) { ui.speed = [1, 2, 5, 10][+ev.key - 1]; ui.paused = false; renderNow(); }
   else if (ev.key === 'f') { ui.speed = Math.min(10, ui.speed === 5 ? 10 : ui.speed === 2 ? 5 : ui.speed === 1 ? 2 : 10); }
 }
@@ -224,6 +229,9 @@ const core: Record<string, (el: HTMLElement, ev?: Event) => void> = {
   },
   'notes-clear': () => { ui.notes = []; ui.modal = null; },
   'open-menu': () => { ui.paused = true; app.openModal('pause', () => `<div class="mhead"><h2>${esc(G.s!.co.name)}</h2></div><div class="mbody menu-list">
-    ${btn('▶ Resume', 'modal-close', {}, 'primary')}${btn('💾 Save game', 'open-save')}${btn('📂 Load game', 'open-load')}${btn('⚙ Settings', 'open-settings')}${btn('❓ How to play', 'open-help')}${btn('⏏ Save & quit to menu', 'to-menu', {}, 'ghost')}</div>`); },
+    ${btn('▶ Resume', 'modal-close', {}, 'primary')}${btn('💾 Save game', 'open-save')}${btn('📂 Load game', 'open-load')}${btn('⚙ Settings', 'open-settings')}${btn('❓ How to play', 'open-help')}${btn('⏏ Save & quit to menu', 'to-menu', {}, 'ghost')}${G.s!.mode === 'sandbox' ? `<h4 class="dim" style="margin:10px 0 0">Sandbox tools</h4><div class="row wrap">${btn('+$100M', 'sb-cash', { v: 1e8 }, 'sm')}${btn('+$10B', 'sb-cash', { v: 1e10 }, 'sm')}${btn('Unlock all tech', 'sb-tech', {}, 'sm')}${btn('+3 perk points', 'sb-perk', {}, 'sm')}</div>` : ''}</div>`); },
+  'sb-cash': el => { const s = G.s!; issueEquity(s, +el.dataset.v!); pushToast('Added funds', 'good'); },
+  'sb-tech': () => { const s = G.s!; for (const t of TECH) if (!s.research.done[t.id]) s.research.done[t.id] = s.day; pushToast('All technologies unlocked', 'good'); },
+  'sb-perk': () => { G.s!.co.ceo.perkPoints += 3; pushToast('+3 CEO perk points', 'good'); },
 };
 export { startGame as _start };
