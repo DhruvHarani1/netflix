@@ -162,6 +162,7 @@ function recognise(s: GameState, cat: CatDef, o: Off, units: number, who: 'playe
     if (who === 'player') { const p = o.prod!; cogs = units * p.ucost * (p.outsource ? 1.18 : 1) * Math.max(0.7, 1 - 0.04 * Math.log10(1 + p.lifeUnits / 1e4)); }
     else cogs = units * offerUnitCost(cat, o);
   }
+  if (who === 'player' && s.legal.policies.privacyfirst && (cat.id === 'social' || cat.id === 'search')) rev *= 0.9; // privacy-first policy trades ad revenue for compliance
   if (who === 'player') { const p = o.prod!; p.lifeRev += rev; p.lifeUnits += units; p.unitsEma += (units - p.unitsEma) * α; p.revEma += (rev - p.revEma) * α; }
   else { const ro = o.ro!; ro.unitsEma += (units - ro.unitsEma) * α; ro.revEma += (rev - ro.revEma) * α; }
   return { rev, cogs };

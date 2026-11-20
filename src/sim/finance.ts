@@ -1,4 +1,5 @@
 // FINANCE — loans, venture capital, equity, dividends, buybacks, tax, insolvency, valuation, statements.
+import { perkMult } from './achievements';
 import type { GameState, Period, Loan } from './types';
 import { clamp, isQuarterStart, toast, addNews, logEntry, sum, lerp } from './util';
 import { expense, repayPrincipal, borrow, issueEquity, dividend, buyback, totalDebt, totalAssets, totalEquity, opexTotal, emptyPeriod } from './ledger';
@@ -89,7 +90,7 @@ export function monthly(s: GameState): void {
   const f = s.fin; const L = f.ledger;
   // interest + scheduled principal
   for (const l of [...f.loans]) {
-    const interest = (l.principal * l.rate) / 12; expense(s, interest, 'interest');
+    const interest = (l.principal * l.rate * perkMult(s, 'interest')) / 12; expense(s, interest, 'interest');
     const pay = Math.min(l.monthly, l.principal); if (pay > 0) { repayPrincipal(s, pay); l.principal -= pay; }
     if (l.principal < 1) { if (l.principal > 0) { repayPrincipal(s, l.principal); l.principal = 0; } f.loans.splice(f.loans.indexOf(l), 1); toast(`Loan "${l.name}" fully repaid`, 'good', 'success'); }
   }
@@ -199,7 +200,7 @@ export const ROUNDS = [
 ];
 export function vcOffer(s: GameState, idx: number, pct: number) {
   const r = ROUNDS[idx]; if (!r) return null;
-  const pre = Math.max(500_000, s.derived.valuation * r.mult * (0.9 + (s.derived.brand / 100) * 0.2)); const raise = Math.round((pre * pct) / (1 - pct) / 1000) * 1000;
+  const pre = Math.max(500_000, s.derived.valuation * r.mult * perkMult(s, 'vc') * (0.9 + (s.derived.brand / 100) * 0.2)); const raise = Math.round((pre * pct) / (1 - pct) / 1000) * 1000;
   const newShares = Math.round((outstanding(s) * pct) / (1 - pct)); return { pre, post: pre + raise, raise, newShares, price: raise / Math.max(1, newShares), pct };
 }
 export function vcEligibility(s: GameState, idx: number): string | null {

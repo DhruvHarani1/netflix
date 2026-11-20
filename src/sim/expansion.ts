@@ -1,3 +1,4 @@
+import { perkMult } from './achievements';
 import type { GameState, RegionId, RegionState } from './types';
 import { clamp, toast, logEntry, avg } from './util';
 import { expense } from './ledger';
@@ -15,7 +16,7 @@ export const EXPANSIONS: ExpansionDef[] = [
 ];
 export const EXP: Record<ExpansionKind, ExpansionDef> = Object.fromEntries(EXPANSIONS.map(e => [e.id, e])) as any;
 const costScale = (s: GameState) => 1 + Math.min(9, s.derived.headcount / 60);
-export const expansionCost = (s: GameState, r: RegionId, k: ExpansionKind) => Math.round(REGION[r].officeCost * EXP[k].setup * costScale(s) / 1000) * 1000;
+export const expansionCost = (s: GameState, r: RegionId, k: ExpansionKind) => Math.round(REGION[r].officeCost * EXP[k].setup * costScale(s) / perkMult(s, 'expansion') / 1000) * 1000;
 export const expansionMonthly = (s: GameState, r: RegionId, k: ExpansionKind) => Math.round(REGION[r].officeCost * EXP[k].monthly * costScale(s) / 100) * 100;
 
 export function has(rs: RegionState, k: ExpansionKind): boolean {

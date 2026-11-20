@@ -6,6 +6,7 @@ import { specCap, TECH_BY_ID } from '../data/research';
 import { clamp, empOutput, toast, sfx, addNews, logEntry, rnd, gauss, pick, rrange } from './util';
 import { expense } from './ledger';
 import { unlocked } from './market';
+import { perkMult } from './achievements';
 
 export type Res = { ok: boolean; msg: string; id?: number };
 const ok = (msg: string, id?: number): Res => ({ ok: true, msg, id }); const no = (msg: string): Res => ({ ok: false, msg });
@@ -35,7 +36,8 @@ export function teamOutput(s: GameState, p: Product): { out: number; skill: numb
     out += o; sk += o * e.skill; heads += e.heads; if (e.dept === 'pm') pm += o;
   }
   const bro = 1 / (1 + Math.max(0, heads - 14) / 45); // coordination overhead
-  out *= bro; return { out, skill: out > 0 ? sk / (out / bro) : 0, heads, pmShare: out > 0 ? pm / (out / bro) : 0 };
+  const raw = out; out *= bro;
+  return { out: out * perkMult(s, 'dev'), skill: raw > 0 ? sk / raw : 0, heads, pmShare: raw > 0 ? pm / raw : 0 };
 }
 /** Quality attributes from spec choices + execution. */
 export function evaluate(s: GameState, cat: CatDef, specs: Record<string, number>, ctx: { teamSkill: number; budgetRatio: number; pmShare: number; bugs: number }) {

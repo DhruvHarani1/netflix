@@ -1,3 +1,4 @@
+import { perkMult } from './achievements';
 import type { GameState, Channel, Campaign, Seg, RegionId } from './types';
 import { clamp, lerp, dateOf, toast, sfx, logEntry, addNews, avg, pick } from './util';
 import { expense } from './ledger';
@@ -21,7 +22,7 @@ export const sizeScale = (s: GameState) => clamp(Math.sqrt(Math.max(1, s.derived
 export function presenceWeight(s: GameState): number { let t = 0; for (const r of REGIONS) t += r.pop * s.regions[r.id].presence / 100; return t; }
 function audience(s: GameState, region: RegionId | 'all'): number { return region === 'all' ? presenceWeight(s) : REGION[region].pop * s.regions[region].presence / 100; }
 const cppAt = (ch: Channel, aud: number) => CH[ch].cpp * (0.15 + 1.7 * aud);
-const mEff = (s: GameState) => clamp(s.derived.dept.marketing?.eff ?? 1, .7, 1.5);
+const mEff = (s: GameState) => clamp(s.derived.dept.marketing?.eff ?? 1, .7, 1.5) * perkMult(s, 'marketing');
 
 /** Monthly awareness change for each segment from a campaign (negative for poor-fit channels). */
 export function campaignEffect(s: GameState, c: { channel: Channel; budget: number; product: number | null; region: RegionId | 'all' }): { seg: Record<Seg, number>; promo: number } {

@@ -1,3 +1,4 @@
+import { perkMult } from './achievements';
 import type { GameState, Facility, FacKind, RegionId } from './types';
 import { FAC, FACS, TRACK_INFO, type Track } from '../data/facilities';
 import { REGION, CITIES } from '../data/core';
@@ -104,12 +105,12 @@ export function daily(s: GameState): void {
   recompute(s);
 }
 export function monthly(s: GameState): void {
-  const green = s.legal?.policies?.green ? 1.08 : 1;
+  const green = (s.legal?.policies?.green ? 1.08 : 1) * perkMult(s, 'overhead');
   for (const f of s.facilities) {
     if (!isBuilt(s, f)) continue; const d = FAC[f.kind];
     const rent = rentOf(s, f.kind, f.region, f.level);
     const energy = rent * d.energy * (1 - .08 * f.upg.energy) * green;
-    if (!f.own) expense(s, rent, 'rent');
+    if (!f.own) expense(s, rent * perkMult(s, 'overhead'), 'rent');
     else { const maint = f.value * .003 * (1 - .06 * f.upg.automation); expense(s, maint, 'facilities'); depreciate(s, Math.min(f.value, f.value / 200)); f.value = Math.max(0, f.value - Math.min(f.value, f.value / 200)); }
     expense(s, energy, 'facilities');
   }

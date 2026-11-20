@@ -98,8 +98,8 @@ every module exports `init / daily / monthly` plus its player actions; the UI ne
 - **Balance is tuned, not final.** Early game (first product ~month 12, $0.3 M/mo in year 2) feels right in autoplay tests;
   late-game growth for an optimal player is steep (a bot can reach trillion-dollar valuation in ~10–12 game-years).
   Constants in `market.ts` (`TEMP`, `OUTSIDE`, `AW_EXP`, `rampCap`) and `data/categories.ts` are the main knobs.
-- Some legal policy side-effects described in the UI (e.g. "−10 % social revenue") only change compliance/reputation/cost, not revenue directly.
-- CEO perks are mostly applied in events/achievements; not every module consults `perkMult`.
+- Policy side-effects: Privacy-First trims social/search revenue and Green adds facility cost; the other policies (Fair Work payroll, Open-Source IP risk, …) mainly move compliance targets, reputation and monthly cost.
+- CEO perks wired into the sim: research speed, development speed, marketing, interest, VC valuation, overhead/rent, expansion cost, bad-event severity. Hiring-quality, M&A-premium, legal and loyalty perks are listed but have no mechanical effect yet.
 - Rival acquisitions transfer products/staff but not the target's cash.
 - No multiplayer, no localisation, no mobile-optimised touch UX (layout is responsive but the game is built for mouse + keyboard).
 - Audio is synthesised (no music).
